@@ -4,22 +4,25 @@ import java.util.ArrayList;
 
 public class Player {
 	// ustalamy liczbę graczy
-	private static final int MAX_NO_OF_PLAYERS = 2;
+	public static final int MAX_NO_OF_PLAYERS = 2;
 	private static int noOfPlayers = 0;
 	
 	private static Player[] playersList = new Player[MAX_NO_OF_PLAYERS];
 	private String name;
+	private int playerNo;
 	private int points;     // ilość punktów na koncie zawodnika
-	private ArrayList<String> prizesWon = new ArrayList<>();    // nagrody rzeczowe wygrane przez zawodnika
+	private ArrayList<String> listOfWonPrizes = new ArrayList<>();    // nagrody rzeczowe wygrane przez zawodnika
 	
 	// konstruktor
 	public Player(String name) {
 		if (noOfPlayers < MAX_NO_OF_PLAYERS) {
 			this.name = name;
 			this.points = 0;
+//			listOfWonPrizes = {};
 			
 			playersList[noOfPlayers] = this;
 			noOfPlayers++;
+			this.playerNo = noOfPlayers;
 			
 		} else {
 			System.err.println("Jest już maksymalna liczba graczy.");
@@ -27,8 +30,39 @@ public class Player {
 		
 	}
 	
+	public static Player[] getPlayersList() {
+		return playersList;
+	}
+	
+	public String getName() {
+		return this.name;
+	}
+	
+	public int getPlayerNo() {
+		return playerNo;
+	}
+	
+	public void addPrize(Object prize) {
+		if (prize instanceof String) {
+			// nagroda jest rzeczowa, więc dodajemy do listy nagród
+			listOfWonPrizes.add((String)prize);   // rzutujemy, bo Java spodziewa się Object, a my wiemy, że to String
+		} else {
+			this.points += (int)prize;
+		}
+	}
+	
 	@Override
 	public String toString() {
-		return "Gracz: " + name + ". Liczba punktów: " + points;
+		StringBuilder sb = new StringBuilder();
+		sb.append("Gracz: ").append(name);
+		sb.append("\nLiczba punktów: ").append(points);
+		if (listOfWonPrizes != null) {
+			sb.append("\nNagrody rzeczowe:");
+			for (String prize : listOfWonPrizes) {
+				sb.append(" ").append(prize);
+			}
+		}
+		sb.append("\n");
+		return sb.toString();
 	}
 }

@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.Scanner;
 
 public class WheelOfFortune {
-	private static final Scanner sc = new Scanner(System.in);
-	private static final int COST_OF_VOWEL = 200;
+	public static final Scanner sc = new Scanner(System.in);
+	private static Object prize;
+	private static Player currentPlayer;
+	private static boolean firstDraw = true;
 
 	public static void startGame() {
 		// generujemy nagrody dla tej rundy
@@ -16,106 +18,124 @@ public class WheelOfFortune {
 		Player player1 = new Player("Michał");
 		Player player2 = new Player("Monika");
 		
-		System.out.println(player1);
-		System.out.println(player2);
-		System.out.println();
+		// pierwszy gracz na miejsce!!
+		currentPlayer = Player.getPlayersList()[0];
 		
-		// losujemy nowe hasło
-		System.out.println("Nowe hasło to:");
+		// zaczynamy grę!
+		System.out.println("Witamy w kole fortuny!!\n");
+		System.out.println("Są dzisiaj z nami: " +
+				currentPlayer.getName() + " i " +
+				Player.getPlayersList()[1].getName() + "!"
+		);
+		System.out.println("Zaczynamy od gracza: " + currentPlayer.getName());
+		
+		
+		// losujemy pierwsze hasło
+		System.out.println("\nNowe hasło to:");
 		if (Game.loadEntries()) {
 			Game.displayEntry('1');     // "1" określa nowe hasło
+		} else {
+			// gra nie może załadować listy haseł
+			// można coś z tym zrobić
 		}
 		
 		// losujemy nową nagrodę
-		Object prize = getPrize();
-		
-		boolean guess = false;
-		do {
-			if (prize instanceof Boolean) {
-				// wyzeruj konto zawodnika
-			} else {
-				System.out.println("\nWybierz opcję:");
-				System.out.println("1. Zgaduję spółgłoskę");
-				System.out.println("2. Kupuję samogłoskę");
-				System.out.println("3. Odgaduję hasło");
-				
-				int choice = sc.nextInt();
-				switch (choice) {
-					case 1:
-						guess = guessLetter(true);
-						break;
-					case 2:
-						guess = guessLetter(false);
-						break;
-					case 3:
-						guess = guessEntry();
-						break;
-				}
-			}
-			
-			System.out.println(guess);
-			
-			
-		} while (true);
+		prize = getNewPrize();
 
-	}
-	
-	private static boolean guessLetter(boolean type) {
-		// Odgadnij literę:
-		//      true = spółgłoska
-		//      false = samogłoska
-//		String[] consonants = {
-//				"B", "C", "D", "F", "G", "H", "J", "K", "L", "M", "N", "P", "Q", "R", "S", "T", "V", "X", "Z", "W", "Y"
-//		};
-		List<String> consonants = Arrays.asList(
-				"B", "C", "Ć", "D", "F", "G", "H", "J", "K", "L", "Ł", "M",
-				"N", "P", "Q", "R", "S", "T", "V",  "W","X", "Z", "Ź", "Ż");
-		List<String> vowels = Arrays.asList("A", "Ą", "E", "Ę", "I", "O", "U", "Y");
+		do {
+			System.out.println("\nWybierz opcję:");
+			System.out.println("1. Zgaduję spółgłoskę");
+			System.out.println("2. Kupuję samogłoskę");
+			System.out.println("3. Odgaduję hasło");
+			System.out.println("9. Oglądam statystyki");
+			
+			int choice = sc.nextInt();
+			switch (choice) {
+				case 1:
+					if (Game.guessLetter(true)) {
+						System.out.println("Brawo! Wygrałeś " + prize + "!");
+						currentPlayer.addPrize(prize);
+						prize = getNewPrize();
+//						System.out.println(currentPlayer.toString());
+					} else {
+						System.out.println("Niestety, ta litera nie występuje w haśle...");
+						currentPlayer = nextPlayer();
+						System.out.println("Kolej na gracza: " + currentPlayer.getName());
+						prize = getNewPrize();
+				}
+					
+					break;
+					
+				case 3:
+					if (Game.guessEntry()) {
+						System.out.println("Tak! To jest to hasło!!");
+						System.out.println("Brawo! Wygrałeś " + prize + "!\n");
+						currentPlayer.addPrize(prize);
+						
+						// losujemy nowe hasło
+						System.out.println("Oto nasze nowe hasło:");
+						Game.displayEntry('1');     // "1" określa nowe hasło
+						
+						// losujemy nową nagrodę
+						prize = getNewPrize();
+					} else {
+						System.out.println("Przykro mi, to nie jest to hasło.");
+						System.out.println("Przechodzimy do następnego gracza:");
+						currentPlayer = nextPlayer();
+						System.out.println(currentPlayer.getName());
+					}
+					break;
+					
+				case 9:
+					for (Player player : Player.getPlayersList()) {
+						System.out.println(player);
+					}
+					System.out.println();
+					break;
+					
+				default:
+					break;
+			}   // end of switch
+			
+			System.out.println("\nOdgadujemy hasło:");
+			Game.displayEntry('0');
 		
-		if (type) {
-			System.out.println("Podaj spółgłoskę:");
-			String letter = sc.next().toUpperCase();
-			if (consonants.contains(letter)) {
-				return Game.displayEntry(letter.charAt(0));
-			} else {
-				System.out.println("To nie jest spółgłoska.\nPrzykro mi, straciłeś ruch.");
-				return false;
-			}
-		} else {
-			System.out.println("Podaj samogłoskę:");
-			String letter = sc.next().toUpperCase();
-			if (vowels.contains(letter)) {
-				return Game.displayEntry(letter.charAt(0));
-			} else {
-				System.out.println("To nie jest samogłoska.\nPrzykro mi, straciłeś ruch.");
-				return false;
-			}
+		} while (true);
+	}
+	
+	public static Player nextPlayer() {
+		int playerNo = currentPlayer.getPlayerNo();
+		playerNo++;
+		if (playerNo > Player.MAX_NO_OF_PLAYERS) {
+			playerNo = 1;
 		}
+		return Player.getPlayersList()[playerNo - 1];
 	}
 	
-	private static boolean guessEntry() {
-		System.out.println("Podaj hasło:");
-		String sentence = sc.next().toUpperCase();
-		sentence += sc.nextLine().toUpperCase();
-		return Game.displayEntry('2', sentence);
-	}
-	
-	private static Object getPrize() {
-		String ending;
+	public static Object getNewPrize() {
 		Object prize = Game.getPrize();
+		
+		String ending = "";  // fragment komunikatu
+		
 		if (prize instanceof String) {
 			if (prize.equals("Bankrut")) {
-				System.out.println("Gratulacje! Zostałeś bankrutem!");
-				return false;
+				if (!firstDraw) {
+					System.out.println("Gratulacje! Zostałeś bankrutem!");
+					// Player.bankruptPlayer(currentPlayer);
+					nextPlayer();
+				} else {
+					getNewPrize();
+				}
 			} else {
-				ending = "!";
+				ending += "!";
 			}
 		} else {
-			ending = " punktów";
+			ending += " punktów.";
 		}
 		
-		System.out.println("\nW tej rundzie gramy o: " + prize + ending);
-		
+		System.out.println("\nLosujemy nową nagrodę.");
+		System.out.println("W tej rundzie gramy o: " + prize + ending);
 		return prize;
 	}
+	
 }
