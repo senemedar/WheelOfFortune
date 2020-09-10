@@ -41,6 +41,7 @@ public class WheelOfFortune {
 		
 		// losujemy nową nagrodę
 		prize = getNewPrize();
+		firstDraw = false;
 
 		do {
 			System.out.println("\nWybierz opcję:");
@@ -58,9 +59,9 @@ public class WheelOfFortune {
 						prize = getNewPrize();
 //						System.out.println(currentPlayer.toString());
 					} else {
-						System.out.println("Niestety, ta litera nie występuje w haśle...");
+						System.out.println("Niestety, ta litera nie występuje w haśle...\n");
 						currentPlayer = nextPlayer();
-						System.out.println("Kolej na gracza: " + currentPlayer.getName());
+						
 						prize = getNewPrize();
 				}
 					
@@ -109,32 +110,37 @@ public class WheelOfFortune {
 		if (playerNo > Player.MAX_NO_OF_PLAYERS) {
 			playerNo = 1;
 		}
-		return Player.getPlayersList()[playerNo - 1];
+		Player nextPlayer = Player.getPlayersList()[playerNo - 1];
+		System.out.println("Kolej na gracza: " + nextPlayer.getName());
+		return nextPlayer;
 	}
 	
 	public static Object getNewPrize() {
+//		boolean repeat = false;
 		Object prize = Game.getPrize();
 		
-		String ending = "";  // fragment komunikatu
-		
-		if (prize instanceof String) {
-			if (prize.equals("Bankrut")) {
-				if (!firstDraw) {
-					System.out.println("Gratulacje! Zostałeś bankrutem!");
-					// Player.bankruptPlayer(currentPlayer);
-					nextPlayer();
-				} else {
-					getNewPrize();
-				}
+		// pętla sprawdzająca bankruta
+		while (prize instanceof String && prize.equals("Bankrut")) {
+			if (!firstDraw) {
+				System.out.println("\nGratulacje! Jesteś bankrutem!\n");
+				currentPlayer.bankruptPlayer();
+				nextPlayer();
+				prize = Game.getPrize();
 			} else {
-				ending += "!";
+				prize = Game.getPrize();
 			}
-		} else {
-			ending += " punktów.";
 		}
 		
-		System.out.println("\nLosujemy nową nagrodę.");
-		System.out.println("W tej rundzie gramy o: " + prize + ending);
+		StringBuilder message = new StringBuilder();  // fragment komunikatu
+		message.append("\nLosujemy nową nagrodę.");
+		message.append("\nW tej rundzie gramy o: ").append(prize);
+		
+		if (prize instanceof String) {
+			message.append("!");
+		} else {
+			message.append(" punktów.");
+		}
+		System.out.println(message.toString());
 		return prize;
 	}
 	

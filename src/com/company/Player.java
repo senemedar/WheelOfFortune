@@ -34,6 +34,11 @@ public class Player {
 		return playersList;
 	}
 	
+	public void bankruptPlayer() {
+		this.points = 0;
+		this.listOfWonPrizes.clear();
+	}
+	
 	public String getName() {
 		return this.name;
 	}
@@ -56,11 +61,13 @@ public class Player {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Gracz: ").append(name);
 		sb.append("\nLiczba punktów: ").append(points);
-		if (listOfWonPrizes != null) {
+		if (listOfWonPrizes.size() != 0) {
 			sb.append("\nNagrody rzeczowe:");
 			for (String prize : listOfWonPrizes) {
 				sb.append(" ").append(prize);
 			}
+		} else {
+			sb.append("\nBrak nagród rzeczowych.");
 		}
 		sb.append("\n");
 		return sb.toString();
