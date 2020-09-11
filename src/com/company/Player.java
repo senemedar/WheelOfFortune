@@ -34,6 +34,10 @@ public class Player {
 		return playersList;
 	}
 	
+	public static int getPoints(Player player) {
+		return player.points;
+	}
+	
 	public void bankruptPlayer() {
 		this.points = 0;
 		this.listOfWonPrizes.clear();
@@ -45,6 +49,10 @@ public class Player {
 	
 	public int getPlayerNo() {
 		return playerNo;
+	}
+	
+	public int getPoints() {
+		return points;
 	}
 	
 	public void addPrize(Object prize) {

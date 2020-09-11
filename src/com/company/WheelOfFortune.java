@@ -1,13 +1,11 @@
 package com.company;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Scanner;
 
 public class WheelOfFortune {
 	public static final Scanner sc = new Scanner(System.in);
-	private static Object prize;
-	private static Player currentPlayer;
+
+
 	private static boolean firstDraw = true;
 
 	public static void startGame() {
@@ -19,15 +17,15 @@ public class WheelOfFortune {
 		Player player2 = new Player("Monika");
 		
 		// pierwszy gracz na miejsce!!
-		currentPlayer = Player.getPlayersList()[0];
+//		Game.nextPlayer();
 		
 		// zaczynamy grę!
 		System.out.println("Witamy w kole fortuny!!\n");
 		System.out.println("Są dzisiaj z nami: " +
-				currentPlayer.getName() + " i " +
+				Game.getCurrentPlayer().getName() + " i " +
 				Player.getPlayersList()[1].getName() + "!"
 		);
-		System.out.println("Zaczynamy od gracza: " + currentPlayer.getName());
+		System.out.println("Zaczynamy od gracza: " + Game.getCurrentPlayer().getName());
 		
 		
 		// losujemy pierwsze hasło
@@ -40,7 +38,7 @@ public class WheelOfFortune {
 		}
 		
 		// losujemy nową nagrodę
-		prize = getNewPrize();
+		Game.drawPrize(firstDraw);
 		firstDraw = false;
 
 		do {
@@ -53,38 +51,15 @@ public class WheelOfFortune {
 			int choice = sc.nextInt();
 			switch (choice) {
 				case 1:
-					if (Game.guessLetter(true)) {
-						System.out.println("Brawo! Wygrałeś " + prize + "!");
-						currentPlayer.addPrize(prize);
-						prize = getNewPrize();
-//						System.out.println(currentPlayer.toString());
-					} else {
-						System.out.println("Niestety, ta litera nie występuje w haśle...\n");
-						currentPlayer = nextPlayer();
-						
-						prize = getNewPrize();
-				}
+					Game.guessLetter(true);
+					break;
 					
+				case 2:
+					Game.guessLetter(false);
 					break;
 					
 				case 3:
-					if (Game.guessEntry()) {
-						System.out.println("Tak! To jest to hasło!!");
-						System.out.println("Brawo! Wygrałeś " + prize + "!\n");
-						currentPlayer.addPrize(prize);
-						
-						// losujemy nowe hasło
-						System.out.println("Oto nasze nowe hasło:");
-						Game.displayEntry('1');     // "1" określa nowe hasło
-						
-						// losujemy nową nagrodę
-						prize = getNewPrize();
-					} else {
-						System.out.println("Przykro mi, to nie jest to hasło.");
-						System.out.println("Przechodzimy do następnego gracza:");
-						currentPlayer = nextPlayer();
-						System.out.println(currentPlayer.getName());
-					}
+					Game.guessEntry();
 					break;
 					
 				case 9:
@@ -103,45 +78,4 @@ public class WheelOfFortune {
 		
 		} while (true);
 	}
-	
-	public static Player nextPlayer() {
-		int playerNo = currentPlayer.getPlayerNo();
-		playerNo++;
-		if (playerNo > Player.MAX_NO_OF_PLAYERS) {
-			playerNo = 1;
-		}
-		Player nextPlayer = Player.getPlayersList()[playerNo - 1];
-		System.out.println("Kolej na gracza: " + nextPlayer.getName());
-		return nextPlayer;
-	}
-	
-	public static Object getNewPrize() {
-//		boolean repeat = false;
-		Object prize = Game.getPrize();
-		
-		// pętla sprawdzająca bankruta
-		while (prize instanceof String && prize.equals("Bankrut")) {
-			if (!firstDraw) {
-				System.out.println("\nGratulacje! Jesteś bankrutem!\n");
-				currentPlayer.bankruptPlayer();
-				nextPlayer();
-				prize = Game.getPrize();
-			} else {
-				prize = Game.getPrize();
-			}
-		}
-		
-		StringBuilder message = new StringBuilder();  // fragment komunikatu
-		message.append("\nLosujemy nową nagrodę.");
-		message.append("\nW tej rundzie gramy o: ").append(prize);
-		
-		if (prize instanceof String) {
-			message.append("!");
-		} else {
-			message.append(" punktów.");
-		}
-		System.out.println(message.toString());
-		return prize;
-	}
-	
 }

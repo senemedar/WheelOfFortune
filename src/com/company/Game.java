@@ -12,9 +12,11 @@ public class Game {
 	private static final int TOTAL_NO_OF_PRIZES = 12;
 	private static final int COST_OF_VOWEL = 200;
 	
-	private static char[] entryArray;   // wylosowane hasło do odgadnięcia - w formie tabeli
-	private static String entry;        // wylosowane hasło do odgadnięcia
-	private static boolean[] visible;   // czy dana litera w haśle jest widoczna
+	private static char[] entryArray;       // wylosowane hasło do odgadnięcia - w formie tabeli
+	private static String entry;            // wylosowane hasło do odgadnięcia
+	private static boolean[] visible;       // czy dana litera w haśle jest widoczna
+	private static Object prize;            // wysolowana nagroda dla danej rundy
+	private static Player currentPlayer;    // Pierwszy gracz
 	
 	public static boolean loadEntries() {
 		File wordsFile = new File("src/com/company/words.txt");
@@ -33,6 +35,15 @@ public class Game {
 	
 	public static ArrayList<String> getEntryList() {
 		return entryList;
+	}
+	
+	public static Player getCurrentPlayer() {
+		if (currentPlayer == null) {
+			currentPlayer = Player.getPlayersList()[0];
+			return currentPlayer;
+		} else {
+			return currentPlayer;
+		}
 	}
 	
 	public static boolean displayEntry(char mode, String... sentence) {
@@ -96,14 +107,55 @@ public class Game {
 //		}
 	}
 	
-	public static Object getPrize() {
-		// losujemy nagrodę
-		int prizeNumber = randomNumber.nextInt(TOTAL_NO_OF_PRIZES);
+	public static void drawPrize(boolean firstDraw) {
+		System.out.println("\nLosujemy nową nagrodę...");
+		do {
+			int prizeNumber = randomNumber.nextInt(TOTAL_NO_OF_PRIZES);
+			prize = prizeList.get(prizeNumber);
+		} while (firstDraw && prize instanceof String && prize.equals("Bankrut"));
+		
+		if (prize instanceof String) {
+			if (prize.equals("Bankrut")) {
+				System.out.println("Gratulacje! Jesteś bankrutem!\n");
+				currentPlayer.bankruptPlayer();
+				nextPlayer();
+				drawPrize(false);
+			}
+		}
+		
+		// pętla sprawdzająca bankruta
+//			if (!firstDraw) {
+////				prize = Game.getPrize();
+//			} else {
+////				prize = Game.getPrize();
+//
 
-		return prizeList.get(prizeNumber);
+//			}
+//		} while (prize instanceof String && prize.equals("Bankrut"));
+		
+		
+		StringBuilder message = new StringBuilder();  // fragment komunikatu
+		message.append("W tej rundzie gramy o: ").append(prize);
+		if (prize instanceof String) {
+			message.append("!");
+		} else {
+			message.append(" punktów.");
+		}
+		System.out.println(message.toString());
 	}
 	
-	public static boolean guessLetter(boolean type) {
+	public static void nextPlayer() {
+		int playerNo = currentPlayer.getPlayerNo();
+		playerNo++;
+		if (playerNo > Player.MAX_NO_OF_PLAYERS) {
+			playerNo = 1;
+		}
+		currentPlayer = Player.getPlayersList()[playerNo - 1];
+		System.out.println("Kolej na gracza: " + currentPlayer.getName());
+	}
+	
+	
+	public static void guessLetter(boolean type) {
 		// Odgadnij literę:
 		//      true = spółgłoska
 		//      false = samogłoska
@@ -114,32 +166,69 @@ public class Game {
 		
 		List<String> vowels = Arrays.asList("A", "Ą", "E", "Ę", "I", "O", "U", "Y");
 		
+		boolean ret = false;
+		
 		if (type) {
 			System.out.println("Podaj spółgłoskę:");
 			String letter = WheelOfFortune.sc.next().toUpperCase();
 			if (consonants.contains(letter)) {
-				return displayEntry(letter.charAt(0));
+				ret = displayEntry(letter.charAt(0));
 			} else {
-				System.out.println("To nie jest spółgłoska.\nPrzykro mi, Twój ruch przepadł.");
-				return false;
+				System.out.println("To nie jest spółgłoska.\nPrzykro mi, Twój ruch przepadł.\n");
+//				return ret;
 			}
 		} else {
-			System.out.println("Podaj samogłoskę:");
-			String letter = WheelOfFortune.sc.next().toUpperCase();
-			if (vowels.contains(letter)) {
-				return displayEntry(letter.charAt(0));
+			if (currentPlayer.getPoints() > COST_OF_VOWEL) {
+				System.out.println("Podaj samogłoskę:");
+				String letter = WheelOfFortune.sc.next().toUpperCase();
+				if (vowels.contains(letter)) {
+					displayEntry(letter.charAt(0));
+					currentPlayer.addPrize(-COST_OF_VOWEL);
+					ret = false;
+				} else {
+					System.out.println("To nie jest samogłoska.\nPrzykro mi, Twój ruch przepadł.\n");
+//					return ret;
+				}
 			} else {
-				System.out.println("To nie jest samogłoska.\nPrzykro mi, Twój ruch przepadł.");
-				return false;
+				System.out.println("Przykro mi, nie masz wystarczającej ilość punktów.");
+//				return ret;
 			}
 		}
+		if (ret) {
+			if (type) {
+				System.out.println("Brawo! Wygrałeś " + prize + "!");
+				currentPlayer.addPrize(prize);
+			} else {
+				System.out.println("Brawo! Litera występuje w haśle");
+			}
+			
+		} else {
+			System.out.println("Niestety, ta litera nie występuje w haśle...\n");
+			nextPlayer();
+		}
+		
+		drawPrize(false);
 	}
 	
-	public static boolean guessEntry() {
+	public static void guessEntry() {
 		System.out.println("Podaj hasło:");
 		String sentence = WheelOfFortune.sc.next().toUpperCase();
 		sentence += WheelOfFortune.sc.nextLine().toUpperCase();
-		return Game.displayEntry('2', sentence);
+		
+		if (displayEntry('2', sentence)) {
+			System.out.println("Tak! To jest to hasło!!");
+			System.out.println("Brawo! Wygrałeś " + prize + "!\n");
+			currentPlayer.addPrize(prize);
+			
+			// losujemy nowe hasło
+			System.out.println("Oto nasze nowe hasło:");
+			displayEntry('1');     // "1" określa nowe hasło
+		} else {
+			System.out.println("Przykro mi, to nie jest to hasło.");
+			System.out.println("Przechodzimy do następnego gracza:");
+			nextPlayer();
+			System.out.println(currentPlayer.getName());
+		}
 	}
 	
 }
