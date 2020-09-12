@@ -47,34 +47,35 @@ public class WheelOfFortune {
 			System.out.println("2. Kupuję samogłoskę");
 			System.out.println("3. Odgaduję hasło");
 			System.out.println("9. Oglądam statystyki");
-			
+
 			int choice = sc.nextInt();
 			switch (choice) {
 				case 1:
 					Game.guessLetter(true);
 					break;
-					
+				
 				case 2:
 					Game.guessLetter(false);
 					break;
-					
+				
 				case 3:
 					Game.guessEntry();
 					break;
-					
+				
 				case 9:
+					System.out.println(" - - - - - - - ");
 					for (Player player : Player.getPlayersList()) {
 						System.out.println(player);
 					}
-					System.out.println();
+					System.out.println(" - - - - - - - ");
 					break;
-					
+				
 				default:
 					break;
 			}   // end of switch
-			
-			System.out.println("\nOdgadujemy hasło:");
-			Game.displayEntry('0');
+		
+		System.out.println("\nOdgadujemy hasło:");
+		Game.displayEntry('0');
 		
 		} while (true);
 	}

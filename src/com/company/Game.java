@@ -114,34 +114,27 @@ public class Game {
 			prize = prizeList.get(prizeNumber);
 		} while (firstDraw && prize instanceof String && prize.equals("Bankrut"));
 		
+		boolean bankrut = false;
 		if (prize instanceof String) {
 			if (prize.equals("Bankrut")) {
 				System.out.println("Gratulacje! Jesteś bankrutem!\n");
 				currentPlayer.bankruptPlayer();
 				nextPlayer();
 				drawPrize(false);
+				bankrut = true;
 			}
 		}
 		
-		// pętla sprawdzająca bankruta
-//			if (!firstDraw) {
-////				prize = Game.getPrize();
-//			} else {
-////				prize = Game.getPrize();
-//
-
-//			}
-//		} while (prize instanceof String && prize.equals("Bankrut"));
-		
-		
-		StringBuilder message = new StringBuilder();  // fragment komunikatu
-		message.append("W tej rundzie gramy o: ").append(prize);
-		if (prize instanceof String) {
-			message.append("!");
-		} else {
-			message.append(" punktów.");
+		if (!bankrut) {
+			StringBuilder message = new StringBuilder();  // fragment komunikatu
+			message.append("W tej rundzie gramy o: ").append(prize);
+			if (prize instanceof String) {
+				message.append("!");
+			} else {
+				message.append(" punktów.");
+			}
+			System.out.println(message.toString());
 		}
-		System.out.println(message.toString());
 	}
 	
 	public static void nextPlayer() {
@@ -166,48 +159,59 @@ public class Game {
 		
 		List<String> vowels = Arrays.asList("A", "Ą", "E", "Ę", "I", "O", "U", "Y");
 		
-		boolean ret = false;
+		boolean guess = false;
+		boolean fail = false;
 		
 		if (type) {
 			System.out.println("Podaj spółgłoskę:");
 			String letter = WheelOfFortune.sc.next().toUpperCase();
 			if (consonants.contains(letter)) {
-				ret = displayEntry(letter.charAt(0));
+				guess = displayEntry(letter.charAt(0));
 			} else {
 				System.out.println("To nie jest spółgłoska.\nPrzykro mi, Twój ruch przepadł.\n");
-//				return ret;
+				fail = true;
 			}
 		} else {
 			if (currentPlayer.getPoints() > COST_OF_VOWEL) {
 				System.out.println("Podaj samogłoskę:");
 				String letter = WheelOfFortune.sc.next().toUpperCase();
 				if (vowels.contains(letter)) {
-					displayEntry(letter.charAt(0));
+					guess = displayEntry(letter.charAt(0));
 					currentPlayer.addPrize(-COST_OF_VOWEL);
-					ret = false;
 				} else {
 					System.out.println("To nie jest samogłoska.\nPrzykro mi, Twój ruch przepadł.\n");
-//					return ret;
+					fail = true;
 				}
 			} else {
 				System.out.println("Przykro mi, nie masz wystarczającej ilość punktów.");
-//				return ret;
+				fail = true;
 			}
 		}
-		if (ret) {
-			if (type) {
-				System.out.println("Brawo! Wygrałeś " + prize + "!");
-				currentPlayer.addPrize(prize);
+		if (!fail) {
+			if (!guess) {
+				System.out.println("Niestety, ta litera nie występuje w haśle...\n");
+				nextPlayer();
+				drawPrize(false);
 			} else {
 				System.out.println("Brawo! Litera występuje w haśle");
+				if (type) {
+					System.out.println("Wygrałeś " + prize + "!");
+					currentPlayer.addPrize(prize);
+					drawPrize(false);
+				}
 			}
-			
-		} else {
-			System.out.println("Niestety, ta litera nie występuje w haśle...\n");
-			nextPlayer();
 		}
 		
-		drawPrize(false);
+//			} else {
+//				System.out.println("Brawo! Litera występuje w haśle");
+//			}
+//
+//		} else {
+//			System.out.println("Niestety, ta litera nie występuje w haśle...\n");
+//			nextPlayer();
+//		}
+//
+//		drawPrize(false);
 	}
 	
 	public static void guessEntry() {
